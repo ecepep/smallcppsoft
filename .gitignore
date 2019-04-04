@@ -1,3 +1,24 @@
+
+**/**/*
+
+!README.md
+!src/**/*
+# !src/dbconnetion/*
+# !src/GUI/*
+# !src/*
+!CMakeLists.txt
+
+
+
+
+
+
+
+
+
+
+######### gitignore template #############################################
+
 # C++ objects and libs
 
 *.slo
