@@ -23,8 +23,6 @@ public:
     explicit PropTransactionWorker(std::shared_ptr<DBConnection> dbco);
     virtual ~PropTransactionWorker();
 
-//signals:
-//    void sendBlock(const Block &block);
     void setBuffer(std::shared_ptr<PropTransactionBuffer> buffer);
 public slots:
     void init();
@@ -32,13 +30,13 @@ public slots:
     void addToBuffer();
 
 protected:
-    std::shared_ptr<PropTransactionBuffer> buffer;
-    QSqlDatabase db;
+    std::shared_ptr<PropTransactionBuffer> buffer; /**< shared memory with the buffers. */
+    QSqlDatabase db; /**< open co to db*/
     std::shared_ptr<DBConnection> dbco;
 
-    unsigned int iduser;
+    unsigned int iduser; /**< iduser in database @note user is not properly define in app design for now. */
 private:
-    void update(Prop const& toUpdate ) const;
+    void updateExec(Prop const& toUpdate ) const;
     void fetch(QSqlQuery& query, unsigned int const& transactionSize);
 
     std::deque<unsigned int> idpropCurrentlyLoaded; /**< meant to avoid reload of currently loaded prop (fetched but not yet updated) */

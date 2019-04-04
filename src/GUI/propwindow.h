@@ -12,6 +12,13 @@ namespace Ui {
 class PropWindow;
 }
 
+/**
+ * @brief The PropLoadFail class
+ * @details
+ * Child of QEvent. A PropLoadFail of type (QEvent::Type) eventPLF,
+ * will be sent by @class PropWindow to warn PropWindow's warnOnFail QWidget that
+ * PropWindow has no more Prop to load and display.
+ */
 class PropLoadFail : public QEvent
 {
 public:
@@ -22,6 +29,13 @@ public:
     static QEvent::Type eventPLF;
 };
 
+/**
+ * @brief The PropWindow class QWidget for Prop display
+ *
+ * @details
+ * @see Prop
+ * @see MainWindow
+ */
 class PropWindow : public QWidget
 {
     Q_OBJECT
@@ -35,8 +49,9 @@ protected:
     void loadFailed();
     enum struct kEval { perfect, good, hard, again };
     Ui::PropWindow *ui;
-    std::unique_ptr<Prop> property;
-    QWidget* warnOnFail; /**< Should a PropLoadFail (QEvent) be sent to parent() when load fail  */
+    std::unique_ptr<Prop> property; /**< Property being displayed.
+@note because of @see Prop::load, @see Prop::save property is never replaced just updated @see @function nextProp*/
+    QWidget* warnOnFail; /**< QWidget to receive PropLoadFail event in case of @see @function loadFailed */
 
 protected slots:
     void showProp();

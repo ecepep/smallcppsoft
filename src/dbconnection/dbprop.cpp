@@ -47,12 +47,20 @@ DBProp::DBProp(unsigned int maxTrial, unsigned int sleepTime):
     emit requireFetch();
 }
 
+/**
+ * @warning Error in my_thread_global_end(): 1 threads didn't exit --> debug destruction @todo
+ * @brief DBProp::~DBProp stop transactionThread
+ */
 DBProp::~DBProp()
 {
     transactionThread.quit();
     transactionThread.wait();
 }
 
+/**
+ * @brief DBProp::save
+ * @details append this to buffer->toUpdate and emit requireUpdate
+ */
 void DBProp::save() const
 {
     Prop toUpdate(*this);
@@ -63,8 +71,12 @@ void DBProp::save() const
 }
 
 /**
- * @brief DBProp::load
- * @return bool, false if no more prop to revise
+ * @brief DBProp::load load next property from buffer in this
+ * @details
+ * Safely try to access buffer->fetched to pop the next Prop and assign it to this.
+ * If buffer is empty try up to maxTrial to wait for querying thread sleepTime, then return false.
+ * Emit requireFetch when buffer is too small @see PropTransactionBuffer::fetchedMinSize
+ * @return bool, false if no more prop or fail, true otherwise
  */
 bool DBProp::load()
 {

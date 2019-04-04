@@ -15,6 +15,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->scrollArea->setWidget(prop);
 }
 
+/**
+ * @brief MainWindow::event overload of QObject::event to catch PropLoadFail event
+ * @param event
+ */
 bool MainWindow::event(QEvent *event)
 {
     if (event->type() == PropLoadFail::eventPLF) {

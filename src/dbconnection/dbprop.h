@@ -15,7 +15,13 @@
 
 /**
  * @warning Error in my_thread_global_end(): 1 threads didn't exit --> debug destruction @todo
- * @brief The DBProp class
+ * @brief The DBProp class Prop interfacing with mysql db.
+ * @details
+ * Implement @see save and @see load of @see Prop to interface with mysql database.
+ * This is in the same thread as the GUI however query's are executed in @see transactionThread.
+ * @see buffer plays the role of the shared memory.
+ * @see PropTransactionWorker
+ * @see PropTransactionBuffer
  */
 class DBProp: public QObject, public Prop
 {
@@ -27,17 +33,17 @@ public:
     void save() const;
     bool load();
 protected:
-    std::shared_ptr<PropTransactionBuffer> buffer;
-    PropTransactionWorker transactionWorker;
-    QThread transactionThread;
+    std::shared_ptr<PropTransactionBuffer> buffer;/**< shared memory with the buffers. */
+    PropTransactionWorker transactionWorker;/**< worker object. exec the query's */
+    QThread transactionThread;/**< QThread of transactionWorker != from thread of this. */
 
 signals:
-    void requireUpdate() const;
-    void requireFetch();
+    void requireUpdate() const;/**< @see slot PropTransactionWorker::update */
+    void requireFetch();/**< @see slot PropTransactionWorker::addToBuffer */
 
 private:
-    unsigned int maxTrial;
-    unsigned int sleepTime;
+    unsigned int maxTrial;/**< @see load. */
+    unsigned int sleepTime;/**< @see load. */
 };
 
 #endif // DBPROP_H

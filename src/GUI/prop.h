@@ -7,11 +7,16 @@
 #include <iostream>
 #include <fstream>
 
-class Prop  {
-public:
+/**
+ * @brief The Prop class define content of property
+ * @details
+ * Prop stand for property which is composed of an idprop, the content to be displayed (name, def),
+ * the info about the next time to fetch it (nDay, nextReview)
+ */
+struct Prop  {
     virtual  ~Prop();
     virtual void save() const;
-    virtual bool load(); /**< @warning do not save Prop. @see Prop::save */
+    virtual bool load();
 
     friend std::ostream& operator<<(std::ostream& os, Prop const & p);
 

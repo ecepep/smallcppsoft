@@ -14,13 +14,15 @@
 
 PropLoadFail::PropLoadFail() :
     QEvent(PropLoadFail::type())
-{
-}
+{}
 
 PropLoadFail::~PropLoadFail()
-{
-}
+{}
 
+/**
+ * @brief PropLoadFail::type set value of PropLoadFail::eventPLF if necessary (init)
+ * @return PropLoadFail::eventPLF
+ */
 QEvent::Type PropLoadFail::type()
 {
     if (PropLoadFail::eventPLF == QEvent::None)
@@ -64,13 +66,16 @@ PropWindow::PropWindow(QWidget *parent, QWidget *warnOnFail) :
 }
 
 /**
- * @brief Prop::showProp
+ * @brief Prop::showProp Replace show button by definition in GUI.
  */
 void PropWindow::showProp() {
     ui->show->setVisible(false);
     ui->def->setVisible(true);
 }
 
+/**
+ * @brief PropWindow::loadFailed send a PropLoadFail to warnOnFail
+ */
 void PropWindow::loadFailed() {
     this->hide();
     if (warnOnFail){
@@ -78,6 +83,12 @@ void PropWindow::loadFailed() {
     }
 }
 
+/**
+ * @brief PropWindow::nextProp load and display the next prop
+ * @details
+ * On fail @see loadFailed
+ * @see Prop::load
+ */
 void PropWindow::nextProp() {
     //@todo if show wasn't trigerred yet, show prop and let a small delay to see
 
@@ -94,11 +105,10 @@ void PropWindow::nextProp() {
 }
 
 /**
- * @brief PropWindow::evaluateProp
+ * @brief PropWindow::evaluateProp slot for evaluation button
+ * @details
+ * Switch among eval to assign property's new nextReview and nDay. Then @see Prop::save and @see nextProp
  * @param eval
- *
- *  define nDay before review policy and set next_review, save to db and call for the next review
- *
  * @todo more sofisticated and smoothed reassignement of property.nDay
  */
 void PropWindow::evaluateProp(kEval const& eval) {
@@ -121,7 +131,7 @@ void PropWindow::evaluateProp(kEval const& eval) {
     // set nextReview to be in nDay
     QDateTime now = QDateTime::currentDateTime();
     QDateTime nextReview = now.addDays(static_cast<qint64>(property->nDay));
-    property->nextReview = nextReview.addSecs(-10000); // remove 100000s to force again to reappear
+    property->nextReview = nextReview.addSecs(-1000); // remove 1000s to force again to reappear
 
     property->save();
     nextProp();

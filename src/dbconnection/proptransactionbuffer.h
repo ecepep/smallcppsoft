@@ -6,20 +6,24 @@
 
 #include <GUI/prop.h>
 
+/**
+ * @brief The PropTransactionBuffer struct shared memory for @see DBProp and @see PropTransactionWorker
+ * @note buffer (std::deque) must be access safely thanks to QMutex.
+ */
 struct PropTransactionBuffer
 {
     PropTransactionBuffer(unsigned int fetchedMinSize = 3, unsigned int fetchedMaxSize = 6);
 
-    std::deque<Prop> fetched; /**< buffer for next Prop,queue: pop_front (in this) _ push_back (in transaction worker)  */
-    QMutex ftcMutex;
+    std::deque<Prop> fetched; /**< buffer for next Prop,queue: pop_front _ push_back */
+    QMutex ftcMutex;/**< mutex for @see fetched */
     // @todo google whether const uint need to be specified atomic?
-    const std::atomic_uint fetchedMinSize; /**< For now arbitrary, define the size for which the buffer will emit requireFetch  */
-    const std::atomic_uint fetchedMaxSize; /**< For now arbitrary, define the max size of a fetch */
-    std::atomic_bool noMoreFetch;
+    const std::atomic_uint fetchedMinSize; /**< @see DBProp::load For now arbitrary, define the size for which DBProp::requireFetch will be emited   */
+    const std::atomic_uint fetchedMaxSize; /**< @see PropTransactionWorker::addToBuffer, max size of fetched */
+    std::atomic_bool noMoreFetch; /**< @see true if a sql query for fetching return empty */
 
-    std::deque<Prop> toUpdate; /**< buffer for next Prop,queue: pop_front (in this) _ push_back (in transaction worker)
+    std::deque<Prop> toUpdate; /**< buffer for Prop waiting to be updated. pop_front  _ push_back
 @note no size, should always update asap. */
-    QMutex tupMutex;
+    QMutex tupMutex;/**< mutex for @see toUpdate */
 };
 
 #endif // PROPTRANSACTIONBUFFER_H

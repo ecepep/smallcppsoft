@@ -8,6 +8,9 @@ The use of a mysql database in regards of the program make no sense.
 
 This code contain some incoherence (i.e. in its structure), the lack of target and meaning as well as the used tool (c++) in this project is to explain some of them.
 
+The dump of db will arrive when I find a solution to solve workbenck issue for executing mysqldump.so on ubuntu.
+https://bugs.archlinux.org/task/59656
+
 
 COMMENT ON FIRST COMMIT:
 To make it available asap, I commited it before commenting and clean up. Second commit in this regard to be expected before 04/04 16h, and full clean up/comment before 08/04. Still require some debug on thread destruction but compiles and works.

@@ -5,14 +5,19 @@
 #include "dbconnection/dbconnection.h"
 
 
-DBConnection::DBConnection(QString hostname, QString dbname, QString user, QString password):
+DBConnection::DBConnection(QString const& hostname, QString const& dbname,
+                           QString const& user, QString const& password):
     hostname(hostname),
     dbname(dbname),
     user(user),
     password(password)
-{
-}
+{}
 
+
+/**
+ * @brief DBConnection::getQSqlDatabase
+ * @return QSqlDatabase object initialized thanks to @class DBConnection members @see DBConnection
+ */
 QSqlDatabase DBConnection::getQSqlDatabase(){
     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName(hostname);

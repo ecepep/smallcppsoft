@@ -18,7 +18,7 @@ void PropTransactionWorker::setBuffer(std::shared_ptr<PropTransactionBuffer> buf
 }
 
 void PropTransactionWorker::init() {
-    // db should remain in thread of this.
+    // db should remain in the thread of this.
     db = dbco->getQSqlDatabase(); // std::unique_ptr<QSqlDatabase>();
 
     // Use of user in the app is not properly define in its design, hence this curious select
@@ -33,7 +33,7 @@ void PropTransactionWorker::init() {
 
 PropTransactionWorker::~PropTransactionWorker() {}
 
-void PropTransactionWorker::update(Prop const& toUpdate ) const{
+void PropTransactionWorker::updateExec(Prop const& toUpdate) const{
     QSqlQuery query(db);
     query.prepare("UPDATE userprop \
                   SET nDay = :nDay, nextReview= :nextReview \
@@ -48,6 +48,12 @@ void PropTransactionWorker::update(Prop const& toUpdate ) const{
     if (!success) throw std::runtime_error("could not update db.");
 }
 
+/**
+ * @brief PropTransactionWorker::update update all prop in buffer to db.
+ * @details
+ * Safely @todo
+ * @see signal DBProp::requireUpdate
+ */
 void PropTransactionWorker::update()
 {
     while(true){
@@ -64,16 +70,17 @@ void PropTransactionWorker::update()
             idpropCurrentlyLoaded.pop_front();
             assert(idprop == toUpdate.idprop); // Safety check
 
-            update(toUpdate);
+            updateExec(toUpdate);
         }
     }
 }
 
 /**
- * @brief PropTransactionWorker::fetch
- * @param query
- * @param transactionSize
+ * @brief PropTransactionWorker::fetch fetch transactionSize next Prop from db
+ * @param query, prepare and execute queryo
+ * @param transactionSize, limit transaction to transactionSize
  * @todo clean synthax of NOT IN and its values' binding
+ * @see addToBuffer
  */
 void PropTransactionWorker::fetch(QSqlQuery& query, unsigned int const& transactionSize) {
     QStringList idLoadedStrList;
@@ -109,6 +116,17 @@ void PropTransactionWorker::fetch(QSqlQuery& query, unsigned int const& transact
     if (!success) throw std::runtime_error("could not fetch db.");
 }
 
+ /**
+ * @brief PropTransactionWorker::addToBuffer
+ * @details
+ * Safely access buffer->fetched and append to it the necessary number of new Prop.
+ * If prop fetched for the first time init nDay to 0 (later reassigned in PropWindow::evaluateProp).
+ *
+ * @see PropTransactionBuffer::noMoreFetch
+ * @see PropTransactionBuffer::fetchedMaxSize
+ * @see PropTransactionWorker::fetch
+ * @see signal DBProp::requireFetch
+ */
 void PropTransactionWorker::addToBuffer() {
     buffer->ftcMutex.lock();
     unsigned int size = static_cast<unsigned int>(buffer->fetched.size());

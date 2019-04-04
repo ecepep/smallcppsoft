@@ -19,20 +19,24 @@ PASSWORD: "password"
 /**
  * @brief The DBConnection class
  *
+ * @details
+ * Generate QSqlDatabase object with appropriate init for the database connection.
+ *
  * @warning not thread-safe @todo
  */
 class DBConnection
 {
 public:
-    DBConnection(QString hostname, QString dbname, QString user, QString password);
+    DBConnection(QString const& hostname, QString const& dbname,
+                 QString const& user, QString const& password);
     ~DBConnection();
 
     QSqlDatabase getQSqlDatabase();
 protected:
-    QString hostname;
-    QString dbname;
-    QString user;
-    QString password;
+    const QString hostname;
+    const QString dbname;
+    const QString user;
+    const QString password;
 
 
 };
