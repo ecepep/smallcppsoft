@@ -17,6 +17,13 @@ void PropTransactionWorker::setBuffer(std::shared_ptr<PropTransactionBuffer> buf
     this->buffer = buffer;
 }
 
+/**
+ * @brief PropTransactionWorker::init init this in thread
+ * @details
+ * The constructor is initializing in the the thread of parent object aka DBProp's thread.
+ * Hence init is call through the qt::connect system after the call to this->moveToThread(otherThread)
+ * This is necessary since QSqlDatabase's objects cannot work on multiple threads call.
+ */
 void PropTransactionWorker::init() {
     // db should remain in the thread of this.
     db = dbco->getQSqlDatabase(); // std::unique_ptr<QSqlDatabase>();
@@ -33,6 +40,11 @@ void PropTransactionWorker::init() {
 
 PropTransactionWorker::~PropTransactionWorker() {}
 
+/**
+ * @brief PropTransactionWorker::updateExec generate and execute the update query
+ * @param toUpdate
+ * @note throw if unsuccessful @todo deal with it
+ */
 void PropTransactionWorker::updateExec(Prop const& toUpdate) const{
     QSqlQuery query(db);
     query.prepare("UPDATE userprop \
@@ -51,7 +63,8 @@ void PropTransactionWorker::updateExec(Prop const& toUpdate) const{
 /**
  * @brief PropTransactionWorker::update update all prop in buffer to db.
  * @details
- * Safely @todo
+ * Safely pop all the element of buffer->toUpdate and update db with their value.
+ * @see updateExec
  * @see signal DBProp::requireUpdate
  */
 void PropTransactionWorker::update()
@@ -77,12 +90,14 @@ void PropTransactionWorker::update()
 
 /**
  * @brief PropTransactionWorker::fetch fetch transactionSize next Prop from db
- * @param query, prepare and execute queryo
+ * @param query, prepare and execute query
  * @param transactionSize, limit transaction to transactionSize
  * @todo clean synthax of NOT IN and its values' binding
  * @see addToBuffer
+ * @note throw if unsuccessful @todo deal with it
  */
 void PropTransactionWorker::fetch(QSqlQuery& query, unsigned int const& transactionSize) {
+    //create the string inside the 'NOT IN()'
     QStringList idLoadedStrList;
     for(unsigned int id: idpropCurrentlyLoaded){
         // QString::number(id); error in qstring to int conversion somewhere
@@ -91,36 +106,39 @@ void PropTransactionWorker::fetch(QSqlQuery& query, unsigned int const& transact
     }
     QString idLoadedStr = idLoadedStrList.join(",");
 
+    // prepare query with 'idprop NOT IT()' if necessary
     query.prepare(QString("SELECT * \
-                  FROM userprop AS up \
-                  INNER JOIN prop AS p  ON p.idprop = up.idprop \
+                          FROM userprop AS up \
+                          INNER JOIN prop AS p  ON p.idprop = up.idprop \
             INNER JOIN user AS u  ON u.iduser = up.iduser \
             WHERE u.iduser = :iduser  \
             AND (up.nextReview <= :now  OR up.nextReview is NULL) ")
             + ((!idpropCurrentlyLoaded.empty()) ?
-                QString("AND up.idprop NOT IN("+idLoadedStr+") ") : QString("")) +
+                   QString("AND up.idprop NOT IN("+idLoadedStr+") ") : QString("")) +
             QString("ORDER BY up.nextReview ASC LIMIT :transactionSize;"));
 
-    query.bindValue(":iduser", iduser);
+            query.bindValue(":iduser", iduser);
     query.bindValue(":now", QDateTime::currentDateTime());
     query.bindValue(":transactionSize", transactionSize);
 
+    // bind the values in the 'NOT IN()'
     int i = 0;
     for(std::deque<unsigned int>::iterator it = idpropCurrentlyLoaded.begin();
         it != idpropCurrentlyLoaded.end(); it++,i++ )    {
-        query.bindValue(QString(":loaded_") + QString::number(*it), *it); // bind value of the NOT IN (), if not empty
+        query.bindValue(QString(":loaded_") + QString::number(*it), *it);
     }
 
+    // exec query
     bool success = query.exec();
-//    qDebug() << PropTransactionWorker::getLastExecutedQuery(query);
+    //    qDebug() << PropTransactionWorker::getLastExecutedQuery(query);
     if (!success) throw std::runtime_error("could not fetch db.");
 }
 
- /**
- * @brief PropTransactionWorker::addToBuffer
+/**
+ * @brief PropTransactionWorker::addToBuffer query the db to refill the buffer
  * @details
  * Safely access buffer->fetched and append to it the necessary number of new Prop.
- * If prop fetched for the first time init nDay to 0 (later reassigned in PropWindow::evaluateProp).
+ * If prop is fetched for the first time init nDay to 0 (later reassigned in PropWindow::evaluateProp).
  *
  * @see PropTransactionBuffer::noMoreFetch
  * @see PropTransactionBuffer::fetchedMaxSize
@@ -128,6 +146,7 @@ void PropTransactionWorker::fetch(QSqlQuery& query, unsigned int const& transact
  * @see signal DBProp::requireFetch
  */
 void PropTransactionWorker::addToBuffer() {
+    // find necessary transaction's size
     buffer->ftcMutex.lock();
     unsigned int size = static_cast<unsigned int>(buffer->fetched.size());
     buffer->ftcMutex.unlock();
@@ -135,20 +154,24 @@ void PropTransactionWorker::addToBuffer() {
 
     if (transactionSize  < 1 ) return;
 
+    // exec query
     QSqlQuery query(db);
     fetch(query, transactionSize);
 
+    // resolve index in query
     int iidprop = query.record().indexOf("idprop");
     int inDay = query.record().indexOf("up.nDay");
     int inextReview = query.record().indexOf("up.nextReview");
     int iname = query.record().indexOf("p.name");
     int idef = query.record().indexOf("p.def");
 
+    // if query is empty
     if (!query.next()) {
         buffer->noMoreFetch = true;
         return;
     }
 
+    // push each rows of query as a Prop in buffer
     QMutexLocker locker(&(buffer->ftcMutex));
     do {
         Prop newProp;

@@ -7,11 +7,10 @@
 #include "GUI/prop.h"
 #include "dbconnection/dbconnection.h"
 
-
 /**
  * @todo: different languages using tr undefined
+ * @todo run doxygen and check comment's tag
  */
-
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +18,6 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
-
 
     return a.exec();
 }

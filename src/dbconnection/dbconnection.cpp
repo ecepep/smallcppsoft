@@ -13,7 +13,6 @@ DBConnection::DBConnection(QString const& hostname, QString const& dbname,
     password(password)
 {}
 
-
 /**
  * @brief DBConnection::getQSqlDatabase
  * @return QSqlDatabase object initialized thanks to @class DBConnection members @see DBConnection

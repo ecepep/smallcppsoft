@@ -18,11 +18,13 @@ MainWindow::MainWindow(QWidget *parent) :
 /**
  * @brief MainWindow::event overload of QObject::event to catch PropLoadFail event
  * @param event
+ * @details
+ * when no more Prop to display remove PropWindow from scrollArea
  */
 bool MainWindow::event(QEvent *event)
 {
     if (event->type() == PropLoadFail::eventPLF) {
-//        PropLoadFail *event = static_cast<PropLoadFail *>(event);
+        //        PropLoadFail *event = static_cast<PropLoadFail *>(event);
         QTextBrowser *replacement = new QTextBrowser(this);
         replacement->setText("You are done for now. ;)");
         ui->scrollArea->setWidget(replacement);

@@ -31,30 +31,33 @@ public slots:
 
 protected:
     std::shared_ptr<PropTransactionBuffer> buffer; /**< shared memory with the buffers. */
-    QSqlDatabase db; /**< open co to db*/
+    QSqlDatabase db; /**< open co to db */
     std::shared_ptr<DBConnection> dbco;
 
-    unsigned int iduser; /**< iduser in database @note user is not properly define in app design for now. */
+    unsigned int iduser; /**< iduser in database @note user is not properly defined in app design for now. */
 private:
     void updateExec(Prop const& toUpdate ) const;
     void fetch(QSqlQuery& query, unsigned int const& transactionSize);
 
-    std::deque<unsigned int> idpropCurrentlyLoaded; /**< meant to avoid reload of currently loaded prop (fetched but not yet updated) */
+    std::deque<unsigned int> idpropCurrentlyLoaded; /**< meant to avoid reload of currently loaded prop (fetched but not yet updated).
+ the idprop contained in this buffer should be the combination of buffer->fetched and buffer->toUpdate.
+    @see update, @see addToBuffer, @see fetch
+*/
 
-//    /**
-//     * for debug
-//     * https://stackoverflow.com/questions/5777409/how-to-get-last-prepared-and-executed-query-using-qsqlquery/10641002
-//     */
-//    static QString getLastExecutedQuery(const QSqlQuery& query)
-//    {
-//     QString str = query.lastQuery();
-//     QMapIterator<QString, QVariant> it(query.boundValues());
-//     while (it.hasNext()) {
-//      it.next();
-//      str.replace(it.key(),it.value().toString());
-//     }
-//     return str;
-//    }
+    //    /**
+    //     * for debug
+    //     * https://stackoverflow.com/questions/5777409/how-to-get-last-prepared-and-executed-query-using-qsqlquery/10641002
+    //     */
+    //    static QString getLastExecutedQuery(const QSqlQuery& query)
+    //    {
+    //     QString str = query.lastQuery();
+    //     QMapIterator<QString, QVariant> it(query.boundValues());
+    //     while (it.hasNext()) {
+    //      it.next();
+    //      str.replace(it.key(),it.value().toString());
+    //     }
+    //     return str;
+    //    }
 };
 
 #endif // PROPTRANSACTIONWORKER_H

@@ -8,7 +8,6 @@
 #include "ui_propwindow.h"
 #include "dbconnection/dbprop.h"
 
-// @todo read resetUi()
 
 /************** PropLoadFail **********************/
 
@@ -36,7 +35,6 @@ QEvent::Type PropLoadFail::type()
 QEvent::Type PropLoadFail::eventPLF = QEvent::None;
 
 
-
 /************** PropWindow **********************/
 
 /**
@@ -48,7 +46,7 @@ PropWindow::PropWindow(QWidget *parent, QWidget *warnOnFail) :
     QWidget(parent),
     ui(new Ui::PropWindow),
     warnOnFail(warnOnFail)
-{    
+{
     property = std::unique_ptr<DBProp>(new DBProp()) ;
 
     ui->setupUi(this);
@@ -133,6 +131,7 @@ void PropWindow::evaluateProp(kEval const& eval) {
     QDateTime nextReview = now.addDays(static_cast<qint64>(property->nDay));
     property->nextReview = nextReview.addSecs(-1000); // remove 1000s to force again to reappear
 
+    // save Prop and load the next
     property->save();
     nextProp();
 }
